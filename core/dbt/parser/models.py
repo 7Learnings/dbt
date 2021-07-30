@@ -39,7 +39,7 @@ class ModelParser(SimpleSQLParser[ParsedModelNode]):
                 experimentally_parsed: Dict[str, List[Any]] = py_extract_from_source(node.raw_sql)
 
                 # second config format
-                config_call_dict: Dict[str, str] = {}
+                config_call_dict: Dict[str, Any] = {}
                 for c in experimentally_parsed['configs']:
                     ContextConfig._add_config_call(config_call_dict, {c[0]: c[1]})
 
