@@ -140,7 +140,7 @@ class BigQueryConnectionManager(BaseConnectionManager):
     @classmethod
     def handle_error(cls, error, message):
         error_msg = "\n".join([item['message'] for item in error.errors])
-        raise DatabaseException(error_msg)
+        raise DatabaseException(error_msg + cls._bq_job_link(error.query_job))
 
     def clear_transaction(self):
         pass
@@ -180,7 +180,11 @@ class BigQueryConnectionManager(BaseConnectionManager):
             # don't want to log. Hopefully they never change this!
             if BQ_QUERY_JOB_SPLIT in exc_message:
                 exc_message = exc_message.split(BQ_QUERY_JOB_SPLIT)[0].strip()
-            raise RuntimeException(exc_message)
+            raise RuntimeException(exc_message + self._bq_job_link(e.query_job))
+
+    @staticmethod
+    def _bq_job_link(query_job):
+        return f"\nhttps://console.cloud.google.com/bigquery?project={query_job.project}&j=bq:{query_job.location}:{query_job.job_id}&page=queryresults"
 
     def cancel_open(self) -> None:
         pass
