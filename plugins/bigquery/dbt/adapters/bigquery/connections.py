@@ -342,13 +342,14 @@ class BigQueryConnectionManager(BaseConnectionManager):
         sql = self._add_query_comment(sql)
         # auto_begin is ignored on bigquery, and only included for consistency
         query_job, iterator = self.raw_execute(sql, fetch=fetch)
+        query_job_link = self._bq_job_link(query_job)
 
         if fetch:
             table = self.get_table_from_response(iterator)
         else:
             table = agate_helper.empty_table()
 
-        message = 'OK'
+        message = f'OK ({query_job_link} BQ job)'
         code = None
         num_rows = None
         bytes_processed = None
@@ -363,25 +364,27 @@ class BigQueryConnectionManager(BaseConnectionManager):
             code = 'CREATE TABLE'
             num_rows = query_table.num_rows
             bytes_processed = query_job.total_bytes_processed
-            message = '{} ({} rows, {} processed)'.format(
+            message = '{} ({} rows, {} processed, {} BQ job)'.format(
                 code,
                 format_rows_number(num_rows),
-                format_bytes(bytes_processed)
+                format_bytes(bytes_processed),
+                query_job_link
             )
 
         elif query_job.statement_type == 'SCRIPT':
             code = 'SCRIPT'
             bytes_processed = query_job.total_bytes_processed
-            message = f'{code} ({format_bytes(bytes_processed)} processed)'
+            message = f'{code} ({format_bytes(bytes_processed)} processed, {query_job_link} BQ job)'
 
         elif query_job.statement_type in ['INSERT', 'DELETE', 'MERGE']:
             code = query_job.statement_type
             num_rows = query_job.num_dml_affected_rows
             bytes_processed = query_job.total_bytes_processed
-            message = '{} ({} rows, {} processed)'.format(
+            message = '{} ({} rows, {} processed, {} BQ job)'.format(
                 code,
                 format_rows_number(num_rows),
                 format_bytes(bytes_processed),
+                query_job_link
             )
 
         response = BigQueryAdapterResponse(
