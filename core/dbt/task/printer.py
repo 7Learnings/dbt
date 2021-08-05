@@ -104,7 +104,7 @@ def get_printable_result(
         result, success: str, error: str) -> Tuple[str, str, Callable]:
     if result.status == NodeStatus.Error:
         info = 'ERROR {}'.format(error)
-        status = ui.red(result.status.upper())
+        status = ui.red(result.status.upper() + ' ' + result.message)
         logger_fn = logger.error
     else:
         info = 'OK {}'.format(success)
@@ -120,11 +120,11 @@ def print_test_result_line(
     model = result.node
 
     if result.status == TestStatus.Error:
-        info = "ERROR"
+        info = 'ERROR {}'.format(result.message)
         color = ui.red
         logger_fn = logger.error
     elif result.status == TestStatus.Pass:
-        info = 'PASS'
+        info = 'PASS {}'.format(result.message)
         color = ui.green
         logger_fn = logger.info
     elif result.status == TestStatus.Warn:

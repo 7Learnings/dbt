@@ -56,7 +56,7 @@ class TestRunner(CompileRunner):
                 f"Returned {num_rows} rows and {num_cols} cols, but expected "
                 f"1 row and 1 column"
             )
-        return table[0][0]
+        return table[0][0], res
 
     def execute_schema_test(self, test: CompiledSchemaTestNode):
         res, table = self.adapter.execute(
@@ -73,16 +73,16 @@ class TestRunner(CompileRunner):
                 f"Returned {num_rows} rows and {num_cols} cols, but expected "
                 f"1 row and 1 column"
             )
-        return table[0][0]
+        return table[0][0], res
 
     def before_execute(self):
         self.print_start_line()
 
     def execute(self, test: CompiledTestNode, manifest: Manifest):
         if isinstance(test, CompiledDataTestNode):
-            failed_rows = self.execute_data_test(test)
+            failed_rows, adapter_response = self.execute_data_test(test)
         elif isinstance(test, CompiledSchemaTestNode):
-            failed_rows = self.execute_schema_test(test)
+            failed_rows, adapter_response = self.execute_schema_test(test)
         else:
             raise InternalException(
                 f'Expected compiled schema test or compiled data test, got '
@@ -105,8 +105,8 @@ class TestRunner(CompileRunner):
             timing=[],
             thread_id=thread_id,
             execution_time=0,
-            message=int(failed_rows),
-            adapter_response={}
+            message=f"{failed_rows} failed rows {adapter_response}",
+            adapter_response={},
         )
 
     def after_execute(self, result):
