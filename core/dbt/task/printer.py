@@ -143,7 +143,7 @@ def print_test_result_line(
 
     print_fancy_output_line(
         "{info} {name}".format(info=info, name=model.name),
-        color(info),
+        color(info) + f' {"; ".join(result.adapter_response.values())}',
         logger_fn,
         index,
         total,
