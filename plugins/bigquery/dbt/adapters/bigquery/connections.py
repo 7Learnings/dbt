@@ -152,6 +152,8 @@ class BigQueryConnectionManager(BaseConnectionManager):
     @classmethod
     def handle_error(cls, error, message):
         error_msg = "\n".join([item['message'] for item in error.errors])
+        if hasattr(error, "query_job"):
+            raise DatabaseException(error_msg + cls._bq_job_link(error.query_job))
         raise DatabaseException(error_msg)
 
     def clear_transaction(self):
@@ -193,6 +195,10 @@ class BigQueryConnectionManager(BaseConnectionManager):
             if BQ_QUERY_JOB_SPLIT in exc_message:
                 exc_message = exc_message.split(BQ_QUERY_JOB_SPLIT)[0].strip()
             raise RuntimeException(exc_message)
+
+    @staticmethod
+    def _bq_job_link(query_job):
+        return f"\nhttps://console.cloud.google.com/bigquery?project={query_job.project}&j=bq:{query_job.location}:{query_job.job_id}&page=queryresults"
 
     def cancel_open(self) -> None:
         pass
@@ -396,6 +402,7 @@ class BigQueryConnectionManager(BaseConnectionManager):
                 format_bytes(bytes_processed),
             )
 
+        message += f"; {self._bq_job_link(query_job)} BQ job"
         response = BigQueryAdapterResponse(
             _message=message,
             rows_affected=num_rows,

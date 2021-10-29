@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from dbt import utils
 from dbt.dataclass_schema import dbtClassMixin
 import threading
-from typing import Dict, Any, Union
+from typing import Dict, Any, Tuple, Union
 
 from .compile import CompileRunner
 from .run import RunTask
@@ -56,7 +56,7 @@ class TestRunner(CompileRunner):
         self,
         test: Union[CompiledDataTestNode, CompiledSchemaTestNode],
         manifest: Manifest
-    ) -> TestResultData:
+    ) -> Tuple[TestResultData, str]:
         context = generate_runtime_model(
             test, self.config, manifest
         )
@@ -106,10 +106,10 @@ class TestRunner(CompileRunner):
             )
         )
         TestResultData.validate(test_result_dct)
-        return TestResultData.from_dict(test_result_dct)
+        return TestResultData.from_dict(test_result_dct), str(result.response)
 
     def execute(self, test: CompiledTestNode, manifest: Manifest):
-        result = self.execute_test(test, manifest)
+        result, adapter_response = self.execute_test(test, manifest)
 
         severity = test.config.severity.upper()
         thread_id = threading.current_thread().name
@@ -139,7 +139,7 @@ class TestRunner(CompileRunner):
             thread_id=thread_id,
             execution_time=0,
             message=message,
-            adapter_response={},
+            adapter_response={"message": adapter_response},
             failures=failures,
         )
 
