@@ -1,9 +1,10 @@
 name: Performance Regression Tests
 # Schedule triggers
 on:
-  # runs twice a day at 10:05am and 10:05pm
-  schedule:
-    - cron: "5 10,22 * * *"
+  # disabled to not run on our fork
+  # # runs twice a day at 10:05am and 10:05pm
+  # schedule:
+  #   - cron: "5 10,22 * * *"
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
