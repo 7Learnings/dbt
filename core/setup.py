@@ -57,7 +57,8 @@ setup(
         'hologram==0.0.14',
         'isodate>=0.6,<0.7',
         'json-rpc>=1.12,<2',
-        'logbook>=1.5,<1.6',
+        # https://stackoverflow.com/questions/13561618/pip-how-to-install-a-git-pull-request
+        'logbook @ git+https://github.com/getlogbook/logbook@refs/pull/320/head',
         'mashumaro>=2.8,<3',
         'minimal-snowplow-tracker==0.0.2',
         'networkx>=2.3,<3',
