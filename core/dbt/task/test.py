@@ -17,6 +17,7 @@ from dbt.contracts.graph.compiled import (
 )
 from dbt.contracts.graph.manifest import Manifest
 from dbt.contracts.results import TestStatus, PrimitiveDict, RunResult
+from dbt.contracts.connection import AdapterResponse
 from dbt.context.providers import generate_runtime_model_context
 from dbt.clients.jinja import MacroGenerator
 from dbt.events.functions import fire_event
@@ -127,7 +128,7 @@ class TestRunner(CompileRunner):
 
     def execute_test(
         self, test: Union[CompiledSingularTestNode, CompiledGenericTestNode], manifest: Manifest
-    ) -> TestResultData:
+    ) -> tuple[TestResultData, AdapterResponse]:
         context = generate_runtime_model_context(test, self.config, manifest)
 
         materialization_macro = manifest.find_materialization_macro_by_name(
@@ -172,10 +173,10 @@ class TestRunner(CompileRunner):
             )
         )
         TestResultData.validate(test_result_dct)
-        return TestResultData.from_dict(test_result_dct)
+        return TestResultData.from_dict(test_result_dct), result.response
 
     def execute(self, test: CompiledTestNode, manifest: Manifest):
-        result = self.execute_test(test, manifest)
+        result, adapter_response = self.execute_test(test, manifest)
 
         severity = test.config.severity.upper()
         thread_id = threading.current_thread().name
@@ -197,7 +198,9 @@ class TestRunner(CompileRunner):
             failures = result.failures
         else:
             status = TestStatus.Pass
+            message = ""
 
+        message += "\n" + str(adapter_response)
         return RunResult(
             node=test,
             status=status,
